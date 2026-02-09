@@ -105,6 +105,5 @@ API runs at
 * meterId and vehicleId map to the same logical device for analytics
 * No auth, no hosting (assessment scope)
 
-```
 
 
