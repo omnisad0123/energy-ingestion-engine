@@ -1,43 +1,35 @@
+
+````md
 # High-Scale Energy Ingestion Engine
 
-Backend service to ingest high-frequency telemetry from Smart Meters and EVs and provide fast analytical insights for fleet performance.
-
-This project implements the core ingestion layer and prepares the foundation for high-scale analytics.
+Backend service to ingest telemetry from Smart Meters and EVs and provide fast 24-hour performance analytics.
 
 ---
 
-## 🚀 Tech Stack
-- Backend: NestJS (TypeScript)
-- Database: PostgreSQL
-- Containerization: Docker, Docker Compose
+## Tech Stack
+- NestJS (TypeScript)
+- PostgreSQL
+- Docker, Docker Compose
 
 ---
 
-## 🧱 Architecture Overview
-
-The system is designed with Hot & Cold data separation to support:
-- Write-heavy ingestion (millions of records/day)
-- Fast reads for dashboards & analytics
-
-Cold Store (History – append only)
+## Architecture
+Cold (History – INSERT only)
 - meter_readings
 - vehicle_readings
 
-Hot Store (Operational – upsert)
+Hot (Operational – UPSERT)
 - current_meter_status
 - current_vehicle_status
 
-This avoids scanning large history tables for “current state” queries.
+Hot/Cold separation avoids scanning large history tables for current status and analytics.
 
 ---
 
-## 🗄️ Database Schema
-
-History Tables (INSERT only)
+## Database
+Tables
 - meter_readings(meter_id, kwh_consumed_ac, voltage, timestamp)
 - vehicle_readings(vehicle_id, soc, kwh_delivered_dc, battery_temp, timestamp)
-
-Live Tables (UPSERT)
 - current_meter_status(meter_id, kwh_consumed_ac, voltage, last_updated)
 - current_vehicle_status(vehicle_id, soc, kwh_delivered_dc, battery_temp, last_updated)
 
@@ -45,24 +37,25 @@ Indexes
 - (meter_id, timestamp DESC)
 - (vehicle_id, timestamp DESC)
 
-These indexes ensure analytics queries do not perform full table scans.
-
 ---
 
-## 🔁 Ingestion Flow (Implemented)
+## APIs
 
-Endpoint
 POST /v1/ingest
 
 Meter Payload
+```json
 {
   "meterId": "M1",
   "kwhConsumedAc": 10.5,
   "voltage": 220,
   "timestamp": "2026-02-09T10:00:00Z"
 }
+````
 
 Vehicle Payload
+
+```json
 {
   "vehicleId": "V1",
   "soc": 60,
@@ -70,49 +63,50 @@ Vehicle Payload
   "batteryTemp": 32,
   "timestamp": "2026-02-09T10:00:00Z"
 }
+```
 
 Behavior
-- Each reading is inserted into history tables
-- Current state is upserted into live tables
 
-This design supports high write throughput while keeping current status queries fast.
+* History → INSERT
+* Live → UPSERT
 
----
-
-## 🐳 How to Run Locally
-
-docker-compose up --build
-
-Service runs at:
-http://localhost:3000
-
----
-
-## 🧪 Test Ingestion
-
-curl -X POST http://localhost:3000/v1/ingest \
-  -H "Content-Type: application/json" \
-  -d '{
-    "vehicleId": "V1",
-    "soc": 60,
-    "kwhDeliveredDc": 8.5,
-    "batteryTemp": 32,
-    "timestamp": "2026-02-09T10:00:00Z"
-  }'
-
----
-
-## ⚙️ Scale Considerations
-
-- Hot/Cold separation avoids scanning billions of rows for live dashboards
-- Indexed time-series tables allow efficient 24-hour analytics
-- Append-only history supports auditing and long-term reporting
-- Designed to scale for 10,000+ devices sending data every minute (~14.4M records/day)
-
----
-
-## 🔜 Next Step (Planned)
-
-Analytics endpoint:
 GET /v1/analytics/performance/:vehicleId
-(24-hour AC vs DC efficiency summary)
+
+Returns (last 24h)
+
+* totalAc
+* totalDc
+* efficiency (DC / AC)
+* avgBatteryTemp
+
+---
+
+## Run Locally
+
+```bash
+docker-compose up --build
+```
+
+API runs at
+[http://localhost:3000](http://localhost:3000)
+
+---
+
+## Scale Notes
+
+* Append-only history for audit
+* Hot tables for fast current reads
+* Indexed time-series queries for 24h analytics
+
+---
+
+## Assumptions
+
+* meterId and vehicleId map to the same logical device for analytics
+* No auth, no hosting (assessment scope)
+
+```
+
+This is **final submission-grade README**.  
+If you want, I can now give you a **perfect 2-line answer** to paste in the Google Form along with your GitHub link.
+```
