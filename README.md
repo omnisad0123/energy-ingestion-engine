@@ -107,6 +107,4 @@ API runs at
 
 ```
 
-This is **final submission-grade README**.  
-If you want, I can now give you a **perfect 2-line answer** to paste in the Google Form along with your GitHub link.
-```
+
