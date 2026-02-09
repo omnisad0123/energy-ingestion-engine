@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    container_name: energy_pg
+    restart: always
+    environment:
+      POSTGRES_DB: energy
+      POSTGRES_USER: energy_user
+      POSTGRES_PASSWORD: energy_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  api:
+    build: .
+    container_name: energy_api
+    command: npm run start:dev
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgresql://energy_user:energy_pass@db:5432/energy
